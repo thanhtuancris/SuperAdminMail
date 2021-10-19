@@ -10,4 +10,4 @@ const superadminSchema = new mongoose.Schema({
     date_reg: Date,
 })
 
-module.exports = mongoose.model("superadmims", superadminSchema)
+module.exports = mongoose.model("superadmins", superadminSchema)

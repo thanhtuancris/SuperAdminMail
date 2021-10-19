@@ -2,6 +2,7 @@ const fs = require('fs');
 const md5 = require('md5');
 const jwt = require('jsonwebtoken');
 let Account = require('../model/account')
+let Admin = require('../model/superadmin')
 module.exports = {
     login: async (req, res) => {
         let username = req.body.username;
@@ -125,25 +126,33 @@ module.exports = {
             });
         }
     },
-    getUser: async function (req, res) {
+    getAllUser: async function (req, res) {
         let token = req.body.token;
-        let filterAccount = {
+        let filterAdmin = {
             token: token,
             isdelete: false,
             status: true,
-            role: 1
+            role: 10
         }
         let filterUser = {
             isdelete: false,
             status: true,
-            role: 2
+            $or: [{role:1}, {role:2}]
         }
-        let checkAccount = await Account.findOne(filterAccount)
-        if(checkAccount){
-            let getUser = await Account.find(filterUser)
+        let checkAdmin = await Admin.findOne(filterAdmin)
+        if(checkAdmin){
+            const perPage = parseInt(req.body.limit);
+            const page = parseInt(req.body.page || 1);
+            const skip = (perPage * page) - perPage;
+            let getUser = await Account.find(filterUser).skip(skip).limit(perPage);
+            const totalDocuments = await Account.countDocuments(filterUser);
+            const totalPage = Math.ceil(totalDocuments / perPage);
             res.status(200).json({
                 message: "Lấy dữ liệu thành công!",
-                data: getUser
+                data: getUser,
+                page: page,
+                totalDocuments: totalDocuments,
+                totalPage: totalPage,
             })
         }else{
             res.status(400).json({
@@ -151,5 +160,48 @@ module.exports = {
             })
         }
         
+    },
+    addUser : async function(req, res) {
+        try{
+            let token = req.body.token;
+            let filterAccount = {
+                token: token,
+                isdelete: false,
+                status: true,
+                role: 10
+            }
+            let checkAdmin = await Admin.findOne(filterAccount)
+            if(checkAdmin){
+                let newacc = new Account({
+                    username: req.body.username.trim(),
+                    password: md5(req.body.password.trim()),
+                    full_name: req.body.full_name.trim(),
+                    email: req.body.email.trim(),
+                    birth_day: req.body.birthday.trim(),
+                    phone: req.body.phone.trim(),
+                    team: req.body.team.trim(),
+                    role: req.body.role.trim(),
+                    status: req.body.status,
+                    isdelete: req.body.isdelete,
+                    date_reg: new Date(),
+                    date_edit: new Date(),
+                })
+                let checkExists = await Account.findOne({username: req.body.username.trim()})
+                if(checkExists){
+                    res.status(400).json({
+                        message: "Tài khoản đã tồn tại!"
+                    })
+                }else{
+                    let addUser = await newacc.save()
+                    res.status(200).json({
+                        message: "Thêm tài khoản thành công!"
+                    })
+                }   
+            }
+        }catch(e){
+            res.status(400).json({
+                message: e.message,
+            })
+        }
     }
 }
