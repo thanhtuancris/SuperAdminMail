@@ -1,5 +1,6 @@
 const Mail = require('../model/mails');
 let Account = require('../model/account')
+let Admin = require('../model/superadmin')
 let Cookies = require('../model/cookie')
 const sanitizer = require('sanitizer');
 const fs = require('fs');
@@ -10,16 +11,17 @@ let support = require('./support')
 
 module.exports = {
     addMailUser: async function (req, res) {
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
             // $or: [{role:1}, {role:2}]
         });
         if (check) {
             try {
                 let arrExist = []
+                let arrFailed = []
                 let arr = req.body.mail;
                 for (let i = 0; i < arr.length; i++) {
                     let arrMail = arr[i].split("|");
@@ -37,7 +39,7 @@ module.exports = {
                                     mailRecovery: sanitizer.escape(arrMail[2].trim()),
                                     type: sanitizer.escape(req.body.type),
                                     nation: sanitizer.escape(req.body.nation),
-                                    user: check._id,
+                                    user: sanitizer.escape(req.body.buyer),
                                     import_by: check._id,
                                     edit_by: check._id,
                                     note: arrMail[3] ? sanitizer.escape(arrMail[3].trim()) : "",
@@ -55,9 +57,21 @@ module.exports = {
                                     });
                                 }
                             } else {
-                                return res.status(400).json({
-                                    message: 'Sai định dạng mail!',
-                                });
+                                let mail = (arrMail[0]) ? arrMail[0] : "null";
+                                let password = (arrMail[1]) ? arrMail[1] : "null";
+                                let recovered = (arrMail[2]) ? arrMail[2] : "null";
+                                let note = (arrMail[3]) ? arrMail[3] : "null";
+                                let mailFailed = mail + "|" + password + "|" + recovered + "|" + note + "|" + "Sai định dạng Mail"
+                                arrFailed.push(mailFailed)
+                                if (i + 1 == arr.length) {
+                                    res.status(400).json({
+                                        message: `Sai định dạng mail!`,
+                                        data: arrFailed,
+                                        totalImport: arr.length,
+                                        failed: arrFailed.length,
+                                        success: arr.length - arrFailed.length
+                                    });
+                                }
                             }
                         } else {
                             let mail = (arrMail[0]) ? arrMail[0] : "null";
@@ -69,7 +83,10 @@ module.exports = {
                             if (i + 1 == arr.length) {
                                 res.status(400).json({
                                     message: 'Mail bị trùng, Hãy thử lại!',
-                                    data: arrExist
+                                    data: arrExist,
+                                    totalImport: arr.length,
+                                    failed: arrExist.length,
+                                    success: arr.length - arrExist.length
                                 });
                             }
                         }
@@ -190,16 +207,16 @@ module.exports = {
     //         });
     //     }
     // },
-    getMailByUser: async function (req, res) {
+    getAllMail: async function (req, res) {
         try {
             var checkBody = ["type", "nation"];
             let token = req.body.token
             // let buyer = req.body.buyer
-            let filterUser = {
+            let filterAdmin = {
                 token: token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             }
             let totalLive = 0;
             let totalDisabled = 0;
@@ -207,10 +224,9 @@ module.exports = {
             let totalNotExist = 0;
             let totalUnknown = 0;
             let totalSale = 0;
-            let checkUser = await Account.findOne(filterUser)
+            let checkUser = await Admin.findOne(filterAdmin)
             let filter = {
-                isdelete: false,
-                user: checkUser._id
+                isdelete: false
             }
             if (checkUser) {
                 for (var k in req.body) {
@@ -223,6 +239,9 @@ module.exports = {
                 }
                 if (req.body.mail) {
                     filter.mail = new RegExp(req.body.mail.trim(), 'i');
+                }
+                if(req.body.buyer){
+                    filter.user = new RegExp(req.body.buyer.trim(), 'i');
                 }
                 // if (req.body.start_date && req.body.stop_date) {
                 //     let start_date = new Date(req.body.start_date + " 07:00")

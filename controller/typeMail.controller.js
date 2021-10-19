@@ -1,17 +1,19 @@
 let Type = require('../model/typeMail')
 let Account = require('../model/account')
+let Admin = require('../model/superadmin')
 
 
 module.exports = {
     addType: async function (req, res) {
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         let newType = new Type({
             name: req.body.name.trim(),
+            price: req.body.price.trim(),
             date: new Date(),
             isdelete: false,
         })
@@ -40,11 +42,11 @@ module.exports = {
         }
     },
     getType: async function (req, res){
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         if(check){
             let getType = await Type.find()
@@ -65,11 +67,11 @@ module.exports = {
         }
     },
     editType: async function (req, res){
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         if(check){
             let filter = {
@@ -78,7 +80,8 @@ module.exports = {
             }
             let findType = await Type.findOne(filter)
             let update = {
-                name: req.body.name ? req.body.name.trim(): findType.name
+                name: req.body.name ? req.body.name.trim(): findType.name,
+                price: req.body.price ? req.body.price.trim(): findType.price,
             }
             let updateType = await Type.findOneAndUpdate(filter, update, {new: true})
             if(updateType){
@@ -98,11 +101,11 @@ module.exports = {
     },
     deleteType: async function (req, res){
         try{
-            let check = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             })
             let arr = req.body.id_Type;
                 // arr = JSON.parse(arr);

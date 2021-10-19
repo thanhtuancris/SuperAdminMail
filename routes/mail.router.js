@@ -4,7 +4,7 @@ const mailController = require('../controller/mail.controller');
 const middleware = require('../middleware/mail.middleware')
 
 router.post('/mail/add-mail', middleware.addMails ,mailController.addMailUser);
-router.post('/mail/get-mail', middleware.getMail, mailController.getMailByUser);
+router.post('/mail/get-all-mail', middleware.getMail, mailController.getAllMail);
 router.post('/mail/test', mailController.testgetMailByUser);
 router.post('/mail/edit-mail',middleware.editMail, mailController.editMail);
 router.post('/mail/delete-mail',middleware.deleteMail, mailController.deleteMail);

@@ -63,7 +63,43 @@ module.exports = {
         }
         if (!req.body.username) {
             res.status(400).json({
-                message: "Hết phiên đăng nhập"
+                message: "Thiếu username"
+            });
+            return;
+        }
+        if (!req.body.password) {
+            res.status(400).json({
+                message: "Thiếu password"
+            });
+            return;
+        }
+        if (!req.body.full_name) {
+            res.status(400).json({
+                message: "Thiếu full name"
+            });
+            return;
+        }
+        if (!req.body.email) {
+            res.status(400).json({
+                message: "Thiếu email"
+            });
+            return;
+        }
+        if (!req.body.birth_day) {
+            res.status(400).json({
+                message: "Thiếu birthday"
+            });
+            return;
+        }
+        if (!req.body.phone) {
+            res.status(400).json({
+                message: "Thiếu phone"
+            });
+            return;
+        }
+        if (!req.body.role) {
+            res.status(400).json({
+                message: "Thiếu role"
             });
             return;
         }

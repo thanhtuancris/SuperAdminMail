@@ -5,13 +5,13 @@ let Account = require('../model/account')
 let Admin = require('../model/superadmin')
 module.exports = {
     login: async (req, res) => {
-        let username = req.body.username;
-        let password = req.body.password;
+        let username = req.body.username.trim();
+        let password = req.body.password.trim();
         let acc = {
             username: username,
             password: md5(password)
         }
-        let check = await Account.findOne(acc);
+        let check = await Admin.findOne(acc);
         if(check !== null) {
             let newToken = jwt.sign({
                 username: username,
@@ -22,12 +22,12 @@ module.exports = {
                 password: md5(password),
                 isdelete: false,
                 status: true,
-                $or: [{role:1}, {role:2}]
+                role: 10
             }
             let update = {
                 token: newToken
             }
-            let result = await Account.findOneAndUpdate(filter, update, {new:true})
+            let result = await Admin.findOneAndUpdate(filter, update, {new:true})
             if (result != null) {
                 res.status(200).json({
                     message: "Đăng nhập thành công!",
@@ -35,7 +35,7 @@ module.exports = {
                 });
             } else {
                 res.status(400).json({
-                    message: "Đăng nhập thất bại, vui lòng liên hệ Account!"
+                    message: "Đăng nhập thất bại"
                 });
             }
         }else{
@@ -43,18 +43,20 @@ module.exports = {
                 message: "Sai tài khoản hoặc mật khẩu!"
             })
         }
-        
     },
     logout: async (req, res) => {
         let token = req.body.token;
         try {
             let filter = {
-                token: token
+                token: token,
+                isdelete: false,
+                status: true,
+                role: 10
             }
             let update = {
                 token: ""
             }
-            let result = await Account.findOneAndUpdate(filter, update, {
+            let result = await Admin.findOneAndUpdate(filter, update, {
                 new: true
             });
             if (result != null) {
@@ -74,55 +76,51 @@ module.exports = {
         }
     },
     changePassword: async (req, res) => {
-        let check = await Account.findOne({
-            token: req.body.token
+        let check = await Admin.findOne({
+            token: req.body.token,
+            isdelete: false,
+            status: true,
+            role: 10
         });
         try {
-            if (check.username) {
+            if (check) {
                 let username = check.username;
-                let password = req.body.password;
-                let newpassword = req.body.newpassword;
-                try {
-                    let newToken = jwt.sign({
-                        username: username,
-                        password: md5(newpassword)
-                    }, fs.readFileSync('primary.key'));
-                    let filter = {
-                        username: username,
-                        password: md5(password)
-                    }
-                    let update = {
-                        token: newToken,
-                        date_edit: Date.now(),
-                        // modified_by: check._id,
-                        password: md5(newpassword),
-                    }
-                    let result1 = await Account.findOneAndUpdate(filter, update, {
-                        new: true
+                let password = req.body.password.trim();
+                let newpassword = req.body.newpassword.trim();
+                let newToken = jwt.sign({
+                    username: username,
+                    password: md5(newpassword)
+                }, fs.readFileSync('primary.key'));
+                let filter = {
+                    username: username,
+                    password: md5(password)
+                }
+                let update = {
+                    token: newToken,
+                    date_edit: new Date(),
+                    password: md5(newpassword),
+                }
+                let result1 = await Admin.findOneAndUpdate(filter, update, {
+                    new: true
+                });
+                if (result1 != null) {
+                    // result1.token = newToken;
+                    res.status(200).json({
+                        message: "Đổi mật khẩu thành công!",
                     });
-                    if (result1 != null) {
-                        result1.token = newToken;
-                        res.status(200).json({
-                            message: "Thay đổi mật khẩu thành công!",
-                        });
-                    } else {
-                        res.status(400).json({
-                            message: "Mật khẩu cũ sai, vui lòng thử lại"
-                        });
-                    }
-                } catch (ex) {
+                } else {
                     res.status(400).json({
                         message: "Mật khẩu cũ sai, vui lòng thử lại"
                     });
                 }
             } else {
                 res.status(401).json({
-                    message: "Token lỗi, vui lòng thử lại"
+                    message: "Không có quyền thực thi!"
                 });
             }
         } catch (ex) {
             res.status(401).json({
-                message: "Token lỗi, vui lòng thử lại"
+                message: ex.message,
             });
         }
     },
@@ -181,8 +179,8 @@ module.exports = {
                     phone: req.body.phone.trim(),
                     team: req.body.team.trim(),
                     role: req.body.role.trim(),
-                    status: req.body.status,
-                    isdelete: req.body.isdelete,
+                    status: true,
+                    isdelete: false,
                     date_reg: new Date(),
                     date_edit: new Date(),
                 })
