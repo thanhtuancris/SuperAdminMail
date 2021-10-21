@@ -16,17 +16,20 @@ module.exports = {
         }
         if (req.body.price) {
             let price = req.body.price;
-            if(typeof price !== "number") {
+            let parsePrice = parseInt(price)
+            if(typeof parsePrice !== "number") {
                 res.status(400).json({
                     message: "Giá tiền phải là số"
                 });
+                return;
             }
-            if(price < 0 || price > 100000){
+            if(parsePrice < 0 || parsePrice > 100000){
                 res.status(400).json({
                     message: "Nhập lại giá tiền"
                 });
+                return;
             }
-            return;
+            
         }
         next();
     },
@@ -66,6 +69,28 @@ module.exports = {
                 message: "Thiếu trường name"
             });
             return;
+        }
+        if (!req.body.price) {
+            res.status(400).json({
+                message: "Thiếu trường price"
+            });
+            return;
+        }
+        if (req.body.price) {
+            let price = req.body.price;
+            let parsePrice = parseInt(price)
+            if(typeof parsePrice !== "number") {
+                res.status(400).json({
+                    message: "Giá tiền phải là số"
+                });
+                return;
+            }
+            if(parsePrice < 0 || parsePrice > 100000){
+                res.status(400).json({
+                    message: "Nhập lại giá tiền"
+                });
+                return;
+            }
         }
         next();
     }

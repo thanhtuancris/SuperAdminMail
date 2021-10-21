@@ -1,13 +1,14 @@
 let Account = require('../model/account')
+let Admin = require('../model/superadmin')
 let Nation = require('../model/nationMail')
 
 module.exports = {
     addNation: async function (req, res) {
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         let newNation = new Nation({
             name: req.body.name.trim(),
@@ -39,11 +40,11 @@ module.exports = {
         }
     },
     getNation: async function (req, res){
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         if(check){
             let getNation = await Nation.find()
@@ -64,11 +65,11 @@ module.exports = {
         }
     },
     editNation: async function (req, res){
-        let check = await Account.findOne({
+        let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         if(check){
             let filter = {
@@ -97,11 +98,11 @@ module.exports = {
     },
     deleteNation: async function (req, res){
         try{
-            let check = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             })
             let arr = req.body.id_Nation;
                 // arr = JSON.parse(arr);

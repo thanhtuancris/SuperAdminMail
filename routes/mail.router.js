@@ -3,7 +3,7 @@ const router = express.Router();
 const mailController = require('../controller/mail.controller');
 const middleware = require('../middleware/mail.middleware')
 
-router.post('/mail/add-mail', middleware.addMails ,mailController.addMailUser);
+router.post('/mail/add-mail', middleware.addMails ,mailController.addMail);
 router.post('/mail/get-all-mail', middleware.getMail, mailController.getAllMail);
 router.post('/mail/test', mailController.testgetMailByUser);
 router.post('/mail/edit-mail',middleware.editMail, mailController.editMail);

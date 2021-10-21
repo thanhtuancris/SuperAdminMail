@@ -10,13 +10,12 @@ let accChecker = require('../model/accCheckers')
 let support = require('./support')
 
 module.exports = {
-    addMailUser: async function (req, res) {
+    addMail: async function (req, res) {
         let check = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
             role: 10
-            // $or: [{role:1}, {role:2}]
         });
         if (check) {
             try {
@@ -65,7 +64,7 @@ module.exports = {
                                 arrFailed.push(mailFailed)
                                 if (i + 1 == arr.length) {
                                     res.status(400).json({
-                                        message: `Sai định dạng mail!`,
+                                        message: 'Sai định dạng mail!',
                                         data: arrFailed,
                                         totalImport: arr.length,
                                         failed: arrFailed.length,
