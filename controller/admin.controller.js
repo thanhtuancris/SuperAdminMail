@@ -208,6 +208,7 @@ module.exports = {
     },
     editUser: async function(req, res){
         try{
+            let token = req.body.token;
             let filterAccount = {
                 token: token,
                 isdelete: false,
@@ -230,9 +231,11 @@ module.exports = {
                         username: req.body.username ? req.body.username.trim() : findUser.username,
                         password: req.body.password ? req.body.password.trim() : findUser.password,
                         role: req.body.role ? req.body.role.trim() : findUser.role,
+                        team: req.body.team ? req.body.team.trim() : findUser.team,
                         status: req.body.status ? req.body.status.trim() : findUser.status,
                         isdelete: req.body.isdelete ? req.body.isdelete.trim() : findUser.isdelete,
                         date_reg: req.body.date_reg ? req.body.date_reg.trim() : findUser.date_reg,
+                        date_edit: new Date()
                     }
                     let updateInfo = await Account.findOneAndUpdate(filter, update, {new: true})
                     if(updateInfo){
@@ -258,6 +261,39 @@ module.exports = {
         }catch(e){
             res.status(400).json({
                 message: e.message
+            })
+        }
+    },
+    deleteUser: async function(req, res) {
+        let token = req.body.token;
+        let filterAccount = {
+            token: token,
+            isdelete: false,
+            status: true,
+            role: 10
+        }
+        let checkAdmin = await Admin.findOne(filterAccount)
+        if(checkAdmin){
+            let filter = {
+                _id: req.body.id_user,
+                isdelete: false
+            }
+            let update = {
+                isdelete: true
+            }
+            let deleteUser = await Account.findOneAndUpdate(filter, update, {new: true})
+            if(deleteUser){
+                res.status(200).json({
+                    message: "Xóa tài khoản thành công!"
+                })
+            }else{
+                res.status(400).json({
+                    message: "Xóa tài khoản thất bại!"
+                })
+            }
+        }else{
+            res.status(400).json({
+                message: "Không có quyền thực thi!"
             })
         }
     }

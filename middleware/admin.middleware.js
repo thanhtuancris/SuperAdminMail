@@ -104,6 +104,35 @@ module.exports = {
             return;
         }
         next();
-    }
-   
+    },
+    editUser: function (req, res, next) {
+        if (!req.body.token) {
+            res.status(400).json({
+                message: "Hết phiên đăng nhập"
+            });
+            return;
+        }
+        if (!req.body.id_user) {
+            res.status(400).json({
+                message: "Thiếu id_user"
+            });
+            return;
+        }
+        next();
+    },
+    deleteUser: function (req, res, next) {
+        if (!req.body.token) {
+            res.status(400).json({
+                message: "Hết phiên đăng nhập"
+            });
+            return;
+        }
+        if (!req.body.id_user) {
+            res.status(400).json({
+                message: "Thiếu id_user"
+            });
+            return;
+        }
+        next();
+    },
 }
