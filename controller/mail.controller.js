@@ -337,18 +337,17 @@ module.exports = {
     },
     deleteMail: async function (req, res) {
         try {
-            let filterUser = {
+            let filterAdmin = {
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             }
-            let checkUser = await Account.findOne(filterUser)
-            if (checkUser) {
+            let checkAdmin = await Admin.findOne(filterAdmin)
+            if (checkAdmin) {
                 let filter = {
                     _id: req.body.id_mail,
                     isdelete: false,
-                    user: checkUser._id
                 }
                 let update = {
                     isdelete: true,
@@ -379,19 +378,14 @@ module.exports = {
     deleteMails: async function (req, res) {
         try {
             let arr = req.body.id_mails;
-            // arr = JSON.parse(arr);
-            let check = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             });
             try {
-                let findUser = await Mail.find({
-                    user: check._id
-                })
-                if (check._id.toString() === findUser[0].import_by.toString()) {
-                    // let arrMail = [];
+                if (check) {
                     for (let i = 0; i < arr.length; i++) {
                         let update = {
                             isdelete: true,
@@ -399,23 +393,19 @@ module.exports = {
                         try {
                             let filter = {
                                 _id: arr[i],
-                                import_by: check._id
+                                isdelete: false,
                             }
                             let result = await Mail.findOneAndUpdate(filter, update, {
                                 new: true
                             });
-                            // if (result != null) {
-                            //     arrMail.push(result);
-                            // }
                         } catch (ex) {
                             res.status(400).json({
-                                message: "day ne1" + ex.message,
+                                message: ex.message,
                             });
                         }
                         if (i + 1 == arr.length) {
                             res.status(200).json({
                                 message: "Xóa email thành công!",
-                                // data: arrMail
                             });
                         }
                     }
@@ -438,22 +428,20 @@ module.exports = {
     },
     editMail: async function (req, res) {
         try {
-            let checkUser = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
-                role: 2
+                role: 10
             });
             let checkBody = ["type", "nation", "mail", "password", "mailRecovery", "note", "status"];
             let update = {
                 date_edit: new Date(),
-                edit_by: checkUser._id
+                edit_by: check._id
             };
             // let date = req.body.date_import + " 00:00";
             let id_mail = req.body.id_mail;
-            let findUser = await Mail.find({
-                user: checkUser._id
-            })
-            if (checkUser._id.toString() == findUser[0].user.toString()) {
+           
+            if (check) {
                 // if (req.body.date_import) {
                 //     update.date_import = date
                 // }

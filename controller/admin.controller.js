@@ -195,10 +195,69 @@ module.exports = {
                         message: "Thêm tài khoản thành công!"
                     })
                 }   
+            }else{
+                res.status(400).json({
+                    message: "Không có quyền thực thi!"
+                })
             }
         }catch(e){
             res.status(400).json({
                 message: e.message,
+            })
+        }
+    },
+    editUser: async function(req, res){
+        try{
+            let filterAccount = {
+                token: token,
+                isdelete: false,
+                status: true,
+                role: 10
+            }
+            let checkAdmin = await Admin.findOne(filterAccount)
+            if(checkAdmin){
+                let filter = {
+                    _id: req.body.id_user,
+                    isdelete: false,
+                }
+                let findUser = await Account.findOne(filter)
+                if(findUser){
+                    let update = {
+                        email: req.body.email ? req.body.email.trim() : findUser.email,
+                        full_name: req.body.full_name ? req.body.full_name.trim() : findUser.full_name,
+                        birth_day: req.body.birth_day ? req.body.birth_day.trim() : findUser.birth_day,
+                        phone: req.body.phone ? req.body.phone.trim() : check.phone,
+                        username: req.body.username ? req.body.username.trim() : findUser.username,
+                        password: req.body.password ? req.body.password.trim() : findUser.password,
+                        role: req.body.role ? req.body.role.trim() : findUser.role,
+                        status: req.body.status ? req.body.status.trim() : findUser.status,
+                        isdelete: req.body.isdelete ? req.body.isdelete.trim() : findUser.isdelete,
+                        date_reg: req.body.date_reg ? req.body.date_reg.trim() : findUser.date_reg,
+                    }
+                    let updateInfo = await Account.findOneAndUpdate(filter, update, {new: true})
+                    if(updateInfo){
+                        res.status(200).json({
+                            message: "Cập nhật thành công!"
+                        })
+                    }else{
+                        res.status(400).json({
+                            message: "Cập nhật thất bại!"
+                        })
+                    }
+                }else{
+                    res.status(400).json({
+                        message: "Không tồn tại tài khoản này!"
+                    })
+                }
+                
+            }else{
+                res.status(400).json({
+                    message: "Không có quyền thực thi!"
+                })
+            }
+        }catch(e){
+            res.status(400).json({
+                message: e.message
             })
         }
     }
