@@ -941,16 +941,15 @@ module.exports = {
     },
     getDate: async function (req, res) {
         try {
-            let check = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             })
             if (check) {
                 let arrDate = []
                 let filter = {
-                    user: check._id,
                     isdelete: false,
                 }
                 let getAll = await Mail.find(filter);
