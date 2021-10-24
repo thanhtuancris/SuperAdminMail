@@ -6,7 +6,7 @@ const mailSchema = new mongoose.Schema({
     mailRecovery: String,
     type: String,
     nation: String,
-    user: mongoose.Schema.Types.ObjectId,
+    // user: mongoose.Schema.Types.ObjectId,
     import_by: mongoose.Schema.Types.ObjectId,
     edit_by: mongoose.Schema.Types.ObjectId,
     date_import: Date,

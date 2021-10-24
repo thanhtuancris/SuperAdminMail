@@ -7,6 +7,7 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 let request = require('request');
 let accChecker = require('../model/accCheckers')
+let Log = require('../model/dataLog')
 let support = require('./support')
 
 module.exports = {
@@ -38,7 +39,7 @@ module.exports = {
                                     mailRecovery: sanitizer.escape(arrMail[2].trim()),
                                     type: sanitizer.escape(req.body.type),
                                     nation: sanitizer.escape(req.body.nation),
-                                    user: sanitizer.escape(req.body.buyer),
+                                    // user: sanitizer.escape(req.body.buyer),
                                     import_by: check._id,
                                     edit_by: check._id,
                                     note: arrMail[3] ? sanitizer.escape(arrMail[3].trim()) : "",
@@ -50,10 +51,21 @@ module.exports = {
                                 });
                                 let importMail = await newMails.save();
                                 if (i + 1 == arr.length) {
-                                    return res.status(200).json({
+                                    res.status(200).json({
                                         message: 'Thêm mail thành công!',
                                         data: arr.length
                                     });
+                                    let newLog = new Log({
+                                        total: arr.length,
+                                        success: arr.length,
+                                        failed: 0,
+                                        buyer: req.body.buyer ? req.body.buyer.trim() : "",
+                                        date_export: new Date()
+                                    })
+                                    let saveLog = await newLog.save()
+                                    if(saveLog){
+                                        console.log("Save log succes");
+                                    }
                                 }
                             } else {
                                 let mail = (arrMail[0]) ? arrMail[0] : "null";
@@ -70,6 +82,17 @@ module.exports = {
                                         failed: arrFailed.length,
                                         success: arr.length - arrFailed.length
                                     });
+                                    let newLog = new Log({
+                                        total: arr.length,
+                                        success: arr.length - arrFailed.length,
+                                        failed: arrFailed.length,
+                                        buyer: req.body.buyer ? req.body.buyer.trim() : "",
+                                        date_export: new Date()
+                                    })
+                                    let saveLog = await newLog.save()
+                                    if(saveLog){
+                                        console.log("Save log succes");
+                                    }
                                 }
                             }
                         } else {
@@ -87,6 +110,17 @@ module.exports = {
                                     failed: arrExist.length,
                                     success: arr.length - arrExist.length
                                 });
+                                let newLog = new Log({
+                                    total: arr.length,
+                                    success: arr.length - arrExist.length,
+                                    failed: arrExist.length,
+                                    buyer: req.body.buyer ? req.body.buyer.trim() : "",
+                                    date_export: new Date()
+                                })
+                                let saveLog = await newLog.save()
+                                if(saveLog){
+                                    console.log("Save log succes");
+                                }
                             }
                         }
                     }
@@ -1014,26 +1048,38 @@ module.exports = {
     },
     exportMail: async function (req, res) {
         try {
-            let check = await Account.findOne({
+            let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
                 status: true,
-                role: 2
+                role: 10
             })
             if (check) {
                 let filter = {
                     isdelete: false,
-                    user: check._id
                 };
+                var checkBody = ["type", "nation"];
+                for (var k in req.body) {
+                    if (checkBody.indexOf(k) != -1 && req.body[k]) {
+                        filter[k] = new RegExp(req.body[k].trim(), 'i')
+                    }
+                }
+                let arr = req.body.quantity;
+                arr = parseInt(arr);
+                let check_result = await mails.find(filter).limit(arr);
+                if(arr > check_result){
+
+                }
                 var d = new Date(),
                     month = '' + (d.getMonth() + 1),
                     day = '' + d.getDate(),
                     year = d.getFullYear();
                 let filename = "File Export (" + year + "-" + month + "-" + day + ").txt";
-                let perPage = 100;
+                // let perPage = 100;
                 let arrData = []
                 const totalDocuments = await Mail.countDocuments(filter);
-                const totalPage = Math.ceil(totalDocuments / perPage);
+                // const totalPage = Math.ceil(totalDocuments / perPage);
+                const totalPage = Math.ceil(totalDocuments / arr);
                 if (totalPage == 0) {
                     res.status(200).json({
                         message: "Không có dữ liệu để đồng bộ!"
@@ -1041,8 +1087,9 @@ module.exports = {
                 } else {
                     for (let i = 0; i < totalPage; i++) {
                         let page = i + 1;
-                        let skip = (perPage * page) - perPage;
-                        let result = await Mail.find(filter).skip(skip).limit(perPage);
+                        // let skip = (perPage * page) - perPage;
+                        let skip = (arr * page) - arr;
+                        let result = await Mail.find(filter).sort({date_import: -1}).skip(skip).limit(arr);
 
                         for (let j = 0; j < result.length; j++) {
                             //date import
