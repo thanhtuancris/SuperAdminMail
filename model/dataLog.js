@@ -1,11 +1,16 @@
 const mongoose = require("mongoose")
 
 const dataLogSchema = new mongoose.Schema({
-    total: Number,
-    success: Number,
-    failed: Number,
+    totalImport: Number,
+    successImport: Number,
+    failedImport: Number,
+    totalExport: Number,
+    successExport: Number,
+    failedExport: Number,
     buyer: String,
-    date_export: Date
+    date_export: Date,
+    date_import: Date,
+    type: String
 })
 
 module.exports = mongoose.model("datalogs", dataLogSchema)

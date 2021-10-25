@@ -56,11 +56,12 @@ module.exports = {
                                         data: arr.length
                                     });
                                     let newLog = new Log({
-                                        total: arr.length,
-                                        success: arr.length,
-                                        failed: 0,
+                                        type: "Import",
+                                        totalImport: arr.length,
+                                        successImport: arr.length,
+                                        failedImport: 0,
                                         buyer: req.body.buyer ? req.body.buyer.trim() : "",
-                                        date_export: new Date()
+                                        date_import: new Date()
                                     })
                                     let saveLog = await newLog.save()
                                     if(saveLog){
@@ -83,11 +84,12 @@ module.exports = {
                                         success: arr.length - arrFailed.length
                                     });
                                     let newLog = new Log({
-                                        total: arr.length,
-                                        success: arr.length - arrFailed.length,
-                                        failed: arrFailed.length,
+                                        type: "Import",
+                                        totalImport: arr.length,
+                                        successImport: arr.length - arrFailed.length,
+                                        failedImport: arrFailed.length,
                                         buyer: req.body.buyer ? req.body.buyer.trim() : "",
-                                        date_export: new Date()
+                                        date_import: new Date()
                                     })
                                     let saveLog = await newLog.save()
                                     if(saveLog){
@@ -111,11 +113,12 @@ module.exports = {
                                     success: arr.length - arrExist.length
                                 });
                                 let newLog = new Log({
-                                    total: arr.length,
-                                    success: arr.length - arrExist.length,
-                                    failed: arrExist.length,
+                                    type: "Import",
+                                    totalImport: arr.length,
+                                    successImport: arr.length - arrExist.length,
+                                    failedImport: arrExist.length,
                                     buyer: req.body.buyer ? req.body.buyer.trim() : "",
-                                    date_export: new Date()
+                                    date_import: new Date()
                                 })
                                 let saveLog = await newLog.save()
                                 if(saveLog){
@@ -259,7 +262,10 @@ module.exports = {
             let totalSale = 0;
             let checkUser = await Admin.findOne(filterAdmin)
             let filter = {
-                isdelete: false
+                isdelete: false,
+                status: {
+                    $ne: 6
+                }
             }
             if (checkUser) {
                 for (var k in req.body) {
@@ -760,17 +766,19 @@ module.exports = {
     },
     checkMails: async function (req, res) {
         var checkBody = ["type", "nation"];
-        let checkUser = await Account.findOne({
+        let checkUser = await Admin.findOne({
             token: req.body.token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         })
         if (checkUser) {
             let filter = {
                 isdelete: false,
                 ischeck: false,
-                user: checkUser._id
+                status: {
+                    $ne: 6
+                }
             }
             for (var k in req.body) {
                 if (checkBody.indexOf(k) != -1 && req.body[k]) {
@@ -1057,6 +1065,9 @@ module.exports = {
             if (check) {
                 let filter = {
                     isdelete: false,
+                    status: {
+                        $ne: 6
+                    }
                 };
                 var checkBody = ["type", "nation"];
                 for (var k in req.body) {
@@ -1066,54 +1077,80 @@ module.exports = {
                 }
                 let arr = req.body.quantity;
                 arr = parseInt(arr);
-                let check_result = await mails.find(filter).limit(arr);
-                if(arr > check_result){
-
-                }
-                var d = new Date(),
+                let check_result = await Mail.find(filter).limit(arr);
+                if(arr > check_result.length){
+                    res.status(400).json({
+                        message: "Số lượng mail không đủ!"
+                    })
+                }else{
+                    var d = new Date(),
                     month = '' + (d.getMonth() + 1),
                     day = '' + d.getDate(),
                     year = d.getFullYear();
-                let filename = "File Export (" + year + "-" + month + "-" + day + ").txt";
-                // let perPage = 100;
-                let arrData = []
-                const totalDocuments = await Mail.countDocuments(filter);
-                // const totalPage = Math.ceil(totalDocuments / perPage);
-                const totalPage = Math.ceil(totalDocuments / arr);
-                if (totalPage == 0) {
-                    res.status(200).json({
-                        message: "Không có dữ liệu để đồng bộ!"
-                    })
-                } else {
-                    for (let i = 0; i < totalPage; i++) {
-                        let page = i + 1;
-                        // let skip = (perPage * page) - perPage;
-                        let skip = (arr * page) - arr;
-                        let result = await Mail.find(filter).sort({date_import: -1}).skip(skip).limit(arr);
+                    let filename = "File Export (" + year + "-" + month + "-" + day + ").txt";
+                    let perPage = 100;
+                    let arrData = []
+                    const totalDocuments = await Mail.countDocuments(filter);
+                    // const totalPage = Math.ceil(totalDocuments / perPage);
+                    const totalPage = Math.ceil(arr / 100);
+                    if (totalPage == 0) {
+                        res.status(200).json({
+                            message: "Không có dữ liệu để đồng bộ!"
+                        })
+                    } else {
+                        for (let i = 0; i < totalPage; i++) {
+                            let page = i + 1;
+                            // let skip = (perPage * page) - perPage;
+                            let skip = (arr * page) - arr;
+                            let result = await Mail.find(filter).sort({date_import: 1}).skip(skip).limit(arr);
 
-                        for (let j = 0; j < result.length; j++) {
-                            //date import
-                            let date = new Date(result[j].date_import);
-                            let year = date.getFullYear();
-                            let month = date.getMonth() + 1;
-                            let dt = date.getDate();
-                            let date_import = year + '-' + month + '-' + dt;
-                            //date edit
-                            let date1 = new Date(result[j].date_edit);
-                            let year1 = date1.getFullYear();
-                            let month1 = date1.getMonth() + 1;
-                            let dt1 = date1.getDate();
-                            let date_edit = year1 + '-' + month1 + '-' + dt1;
-                            //log Data
-                            let logData = result[j].mail + '|' + result[j].password + '|' + result[j].mailRecovery + '|' + result[j].note + '|' + result[j].type + '|' + result[j].nation + '|' + result[j].status + '|' + date_import.toString() + '|' + date_edit.toString();
-                            arrData.push(logData)
-                        }
-                        if (i + 1 == totalPage) {
-                            res.status(200).json({
-                                message: "Xuất dữ liệu thành công!",
-                                filename: filename,
-                                data: arrData,
-                            })
+                            for (let j = 0; j < result.length; j++) {
+                                let updateStatus = {
+                                    status: 6,
+                                    edit_by: check._id
+                                }
+                                let filterMail = {
+                                    mail: result[j].mail
+                                }
+                                let rs_update = await Mail.updateMany(filterMail, updateStatus)
+                                if(rs_update){
+                                    console.log("Update status success");
+                                }
+                                //date import
+                                let date = new Date(result[j].date_import);
+                                let year = date.getFullYear();
+                                let month = date.getMonth() + 1;
+                                let dt = date.getDate();
+                                let date_import = year + '-' + month + '-' + dt;
+                                //date edit
+                                let date1 = new Date(result[j].date_edit);
+                                let year1 = date1.getFullYear();
+                                let month1 = date1.getMonth() + 1;
+                                let dt1 = date1.getDate();
+                                let date_edit = year1 + '-' + month1 + '-' + dt1;
+                                //log Data
+                                let logData = result[j].mail + '|' + result[j].password + '|' + result[j].mailRecovery + '|' + result[j].note + '|' + result[j].type + '|' + result[j].nation + '|' + result[j].status + '|' + date_import.toString() + '|' + date_edit.toString();
+                                arrData.push(logData)
+                            }
+                            if (i + 1 == totalPage) {
+                                res.status(200).json({
+                                    message: "Xuất dữ liệu thành công!",
+                                    filename: filename,
+                                    data: arrData,
+                                })
+                                let newLog = new Log({
+                                    type: "Export",
+                                    totalExport: arr,
+                                    successExport: arrData.length,
+                                    failedExport: arr - arrData.length,
+                                    buyer: req.body.buyer ? req.body.buyer.trim() : "",
+                                    date_export: new Date()
+                                })
+                                let saveLogExport = await newLog.save()
+                                if(saveLogExport){
+                                    console.log("Save log export done");
+                                }
+                            }
                         }
                     }
                 }
