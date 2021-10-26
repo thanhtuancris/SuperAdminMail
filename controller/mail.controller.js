@@ -797,6 +797,7 @@ module.exports = {
                     "$lt": stop_date
                 }
             }
+            
             let totalcheck = 10000;
             let resultCheck = await Mail.find(filter).limit(parseInt(totalcheck));
 
@@ -817,90 +818,86 @@ module.exports = {
                 user: checkUser.username
             });
             if(cookies){
-                //  for (let i = 0; i < totalPage; i++) {
-                    let arrMail = [];
-                    // let skip = (perPage * page) - perPage;
-                    let result = await Mail.find(filter)
-                    for (let j = 0; j < result.length; j++) {
-                        arrMail.push(result[j].mail.trim());
-                    }
-                    // setTimeout(function () {
-                        const options = {
-                            method: 'POST',
-                            url: 'http://gmailchecker.info/Mail/check',
-                            headers: {
-                                'Host': "gmailchecker.info",
-                                'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
-                                'Accept': "*/*",
-                                'Accept-Language': "en-GB,en;q=0.5",
-                                'Accept-Encoding': "",
-                                'Referer': "http://gmailchecker.info/Mail",
-                                'Content-Type': "application/json",
-                                'X-XSRF-TOKEN': cookies.Xtoken.toString(),
-                                'X-Requested-With': "XMLHttpRequest",
-                                'Origin': "http://gmailchecker.info",
-                                'Connection': "keep-alive",
-                                'Cookie': cookies.cookie.toString(),
-                            },
-                            json: {
-                                "data": arrMail,
-                                "transactionId": 0
-                            }
-                        };
-                        request(options, async function (errs, ress, body) {
-                            if (errs) {
-                                console.log(errs);
-                            } else {
-                                try {
-                                    let rsChecked = body.result.list;
-                                    for (let y = 0; y < rsChecked.length; y++) {
-                                        setTimeout(async function () {
-                                            let temp = rsChecked[y].split("|");
-                                            let statusCheck = 1;
-                                            switch (temp[0]) {
-                                                case "Good":
-                                                    statusCheck = 1;
-                                                    break;
-                                                case "Disable":
-                                                    statusCheck = 2;
-                                                    break;
-                                                case "Ver":
-                                                    statusCheck = 3;
-                                                    break;
-                                                case "Not_Exist":
-                                                    statusCheck = 4;
-                                                    break;
-                                                default:
-                                                    statusCheck = 5;
-                                            }
-                                            let update = await Mail.updateMany({
-                                                mail: temp[1]
-                                            }, {
-                                                status: statusCheck,
-                                                ischeck: true
+            //  for (let i = 0; i < totalPage; i++) {
+                let arrMail = [];
+                // let skip = (perPage * page) - perPage;
+                let result = await Mail.find(filter)
+                for (let j = 0; j < result.length; j++) {
+                    arrMail.push(result[j].mail.trim());
+                }
+                    const options = {
+                        method: 'POST',
+                        url: 'http://gmailchecker.info/Mail/check',
+                        headers: {
+                            'Host': "gmailchecker.info",
+                            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
+                            'Accept': "*/*",
+                            'Accept-Language': "en-GB,en;q=0.5",
+                            'Accept-Encoding': "",
+                            'Referer': "http://gmailchecker.info/Mail",
+                            'Content-Type': "application/json",
+                            'X-XSRF-TOKEN': cookies.Xtoken.toString(),
+                            'X-Requested-With': "XMLHttpRequest",
+                            'Origin': "http://gmailchecker.info",
+                            'Connection': "keep-alive",
+                            'Cookie': cookies.cookie.toString(),
+                        },
+                        json: {
+                            "data": arrMail,
+                            "transactionId": 0
+                        }
+                    };
+                    request(options, async function (errs, ress, body) {
+                        if (errs) {
+                            console.log(errs);
+                        } else {
+                            try {
+                                let rsChecked = body.result.list;
+                                for (let y = 0; y < rsChecked.length; y++) {
+                                    setTimeout(async function () {
+                                        let temp = rsChecked[y].split("|");
+                                        let statusCheck = 1;
+                                        switch (temp[0]) {
+                                            case "Good":
+                                                statusCheck = 1;
+                                                break;
+                                            case "Disable":
+                                                statusCheck = 2;
+                                                break;
+                                            case "Ver":
+                                                statusCheck = 3;
+                                                break;
+                                            case "Not_Exist":
+                                                statusCheck = 4;
+                                                break;
+                                            default:
+                                                statusCheck = 5;
+                                        }
+                                        let update = await Mail.updateMany({
+                                            mail: temp[1]
+                                        }, {
+                                            status: statusCheck,
+                                            ischeck: true
+                                        })
+                                        if (update !== null) {
+                                            console.log("UPDATE STATUS SUCCESS: " + temp[1] + "|" + temp[0])
+                                        } else {
+                                            console.log("UPDATE STATUS FAIL " + temp[1])
+                                        }
+                                        if(y+1 == rsChecked.length){
+                                            // console.log("y = " + y);
+                                            console.log("CHECK MAIL DONE");
+                                            res.status(200).json({
+                                                message: "Check mail thành công!"
                                             })
-                                            if (update !== null) {
-                                                console.log("UPDATE STATUS SUCCESS: " + temp[1] + "|" + temp[0])
-                                            } else {
-                                                console.log("UPDATE STATUS FAIL " + temp[1])
-                                            }
-                                            if(y+1 == rsChecked.length){
-                                                // console.log("y = " + y);
-                                                console.log("CHECK MAIL DONE");
-                                                res.status(200).json({
-                                                    message: "Check mail thành công!"
-                                                })
-                                            }
-                                        }, 3000*y)
-                                    }
-                                } catch (rex) {
-                                    console.log(rex);
+                                        }
+                                    }, 30*y)
                                 }
+                            } catch (rex) {
+                                console.log(rex);
                             }
-                        });
-                    // }, 3500);
-                    // page++;
-                // }
+                        }
+                    });
             }else{
                 res.status(400).json({
                     message: "Chưa có tài khoản checkmail!"
@@ -1307,5 +1304,124 @@ module.exports = {
                 }
             });
         return
+    },
+    checkMailByList: async function (req, res) {
+        try{
+            let arr = req.body.id_mails;
+            let check = await Admin.findOne({
+                token: req.body.token,
+                isdelete: false,
+                status: true,
+                role: 10
+            });
+            let checkCookiesExist = await Cookies.findOne({
+                user: check.username
+            });
+            if(checkCookiesExist){
+                console.log("Tài khoản đã có cookie");
+            }else{
+                console.log("Tài khoản chưa có cookie, đi lấy đã nhé.");
+                await support.getCookie(checkUser.token);
+            } 
+            if(check){
+                let arrMail = [];
+                for(let i = 0; i < arr.length; i++){
+                    let filter = {
+                        _id: arr[i],
+                        isdelete: false,
+                        ischeck: false,
+                        status: {
+                            $ne: 6
+                        }
+                    }
+                   console.log(arr[i]);
+                    let result = await Mail.find(filter)
+                    for (let j = 0; j < result.length; j++) {
+                        arrMail.push(result[j].mail.trim());
+                    }
+
+                    // const options = {
+                    //     method: 'POST',
+                    //     url: 'http://gmailchecker.info/Mail/check',
+                    //     headers: {
+                    //         'Host': "gmailchecker.info",
+                    //         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
+                    //         'Accept': "*/*",
+                    //         'Accept-Language': "en-GB,en;q=0.5",
+                    //         'Accept-Encoding': "",
+                    //         'Referer': "http://gmailchecker.info/Mail",
+                    //         'Content-Type': "application/json",
+                    //         'X-XSRF-TOKEN': checkCookiesExist.Xtoken.toString(),
+                    //         'X-Requested-With': "XMLHttpRequest",
+                    //         'Origin': "http://gmailchecker.info",
+                    //         'Connection': "keep-alive",
+                    //         'Cookie': checkCookiesExist.cookie.toString(),
+                    //     },
+                    //     json: {
+                    //         "data": arrMail,
+                    //         "transactionId": 0
+                    //     }
+                    // };
+                    // request(options, async function (errs, ress, body) {
+                    //     if (errs) {
+                    //         console.log(errs);
+                    //     } else {
+                    //         try {
+                    //             let rsChecked = body.result.list;
+                    //             for (let y = 0; y < rsChecked.length; y++) {
+                    //                 setTimeout(async function () {
+                    //                     let temp = rsChecked[y].split("|");
+                    //                     let statusCheck = 1;
+                    //                     switch (temp[0]) {
+                    //                         case "Good":
+                    //                             statusCheck = 1;
+                    //                             break;
+                    //                         case "Disable":
+                    //                             statusCheck = 2;
+                    //                             break;
+                    //                         case "Ver":
+                    //                             statusCheck = 3;
+                    //                             break;
+                    //                         case "Not_Exist":
+                    //                             statusCheck = 4;
+                    //                             break;
+                    //                         default:
+                    //                             statusCheck = 5;
+                    //                     }
+                    //                     let update = await Mail.updateMany({
+                    //                         mail: temp[1]
+                    //                     }, {
+                    //                         status: statusCheck,
+                    //                         ischeck: true
+                    //                     })
+                    //                     if (update !== null) {
+                    //                         console.log("UPDATE STATUS SUCCESS: " + temp[1] + "|" + temp[0])
+                    //                     } else {
+                    //                         console.log("UPDATE STATUS FAIL " + temp[1])
+                    //                     }
+                    //                     if(y+1 == rsChecked.length){
+                    //                         // console.log("y = " + y);
+                    //                         console.log("CHECK MAIL DONE");
+                    //                         res.status(200).json({
+                    //                             message: "Check mail thành công!"
+                    //                         })
+                    //                     }
+                    //                 }, 3000*y)
+                    //             }
+                    //         } catch (rex) {
+                    //             console.log(rex);
+                    //         }
+                    //     }
+                    // });
+                }
+                console.log(arrMail);
+            }else{
+                res.status(400).json({
+                    message: "Không có quyền thực thi!"
+                });
+            }
+        }catch(ex){
+
+        }
     }
 }

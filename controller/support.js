@@ -1,6 +1,7 @@
 let Cookies = require('../model/cookie')
 let accChecker = require('../model/accCheckers')
 let Account = require('../model/account')
+let Admin = require('../model/superadmin')
 const puppeteer = require('puppeteer');
 module.exports = {
     validateEmail: function (email) {
@@ -14,9 +15,9 @@ module.exports = {
             token: token,
             isdelete: false,
             status: true,
-            role: 2
+            role: 10
         }
-        let checkUser = await Account.findOne(filterUser)
+        let checkUser = await Admin.findOne(filterUser)
         if(checkUser){
             let accountChecker = await accChecker.findOne({user: checkUser.username})
             if(accountChecker){
@@ -98,7 +99,7 @@ module.exports = {
                 console.log("Ông này có tài khoản đâu mà check");
             }
         }else{
-            console.log("Hết phiên");
+            console.log("Hết phiên | Không có quyền thực thi");
         }
     }
 }
