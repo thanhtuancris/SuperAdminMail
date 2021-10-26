@@ -279,9 +279,12 @@ module.exports = {
                 if (req.body.mail) {
                     filter.mail = new RegExp(req.body.mail.trim(), 'i');
                 }
-                if(req.body.buyer){
-                    filter.user = new RegExp(req.body.buyer.trim(), 'i');
+                if (req.body.note) {
+                    filter.note = new RegExp(req.body.note.trim(), 'i');
                 }
+                // if(req.body.buyer){
+                //     filter.user = new RegExp(req.body.buyer.trim(), 'i');
+                // }
                 // if (req.body.start_date && req.body.stop_date) {
                 //     let start_date = new Date(req.body.start_date + " 07:00")
                 //     let stop_date = new Date(req.body.stop_date + " 07:00")
