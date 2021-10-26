@@ -1072,7 +1072,7 @@ module.exports = {
                         $ne: 6
                     }
                 };
-                var checkBody = ["type", "nation"];
+                var checkBody = ["type", "nation", "note"];
                 for (var k in req.body) {
                     if (checkBody.indexOf(k) != -1 && req.body[k]) {
                         filter[k] = new RegExp(req.body[k].trim(), 'i')

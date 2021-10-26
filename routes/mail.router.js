@@ -12,6 +12,6 @@ router.post('/mail/delete-mails',middleware.deleteMails, mailController.deleteMa
 router.post('/mail/check-mails',middleware.checkMails, mailController.checkMails);
 router.post('/mail/get-date', mailController.getDate);
 router.post('/mail/get-status', mailController.getStatus);
-router.post('/mail/export-mail', mailController.exportMail);
+router.post('/mail/export-mail',middleware.checkMails, mailController.exportMail);
 router.post('/mail/edit-mails',middleware.editMails, mailController.editMails);
 module.exports = router;
