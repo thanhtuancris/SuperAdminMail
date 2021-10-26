@@ -31,7 +31,7 @@ module.exports = {
                     });
                 }else{
                     res.status(400).json({
-                        message: 'Thêm thể loại mail thành công!',
+                        message: 'Thêm thể loại mail thất bại!',
                     });
                 }
             }
