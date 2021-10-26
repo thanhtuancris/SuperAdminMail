@@ -51,7 +51,7 @@ module.exports = {
             let update = {
                 name: req.body.name ? req.body.name.trim(): findNote.name,
             }
-            let updateNote = await Type.findOneAndUpdate(filter, update, {new: true})
+            let updateNote = await Note.findOneAndUpdate(filter, update, {new: true})
             if(updateNote){
                 res.status(200).json({
                     message: 'Sửa note thành công!',
@@ -93,6 +93,37 @@ module.exports = {
         }
     },
     deleteNote: async function (req, res) {
-
+        try{
+            let check = await Admin.findOne({
+                token: req.body.token,
+                isdelete: false,
+                status: true,
+                role: 10
+            })
+            let arr = req.body.id_Note;
+                // arr = JSON.parse(arr);
+            if(check){
+                for(let i = 0; i < arr.length; i++){
+                    let filter = {
+                        _id: arr[i],
+                    }
+                    let deleteNote = await Note.findOneAndDelete(filter)
+                    if (i + 1 == arr.length) {
+                        res.status(200).json({
+                            message: "Xóa note thành công!",
+                        });
+                    }
+                }
+                
+            }else{
+                res.status(400).json({
+                    message: 'Không có quyền thực thi!',
+                });
+            }
+        }catch(e){
+            res.status(400).json({
+                message: e.message,
+            });
+        }
     },
 }
