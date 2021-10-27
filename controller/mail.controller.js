@@ -1320,7 +1320,7 @@ module.exports = {
                 console.log("Tài khoản đã có cookie");
             }else{
                 console.log("Tài khoản chưa có cookie, đi lấy đã nhé.");
-                await support.getCookie(checkUser.token);
+                await support.getCookie(check.token);
             } 
             if(check){
                 let arrMail = [];
