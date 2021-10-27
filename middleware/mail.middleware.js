@@ -126,5 +126,19 @@ module.exports = {
         }
         next();
     },
-    
+    checkMailByList: function (req, res, next) {
+        if (!req.body.token) {
+            res.status(400).json({
+                message: "Hết phiên đăng nhập"
+            });
+            return;
+        }
+        if (!req.body.id_mails) {
+            res.status(400).json({
+                message: "Thiếu id mails"
+            });
+            return;
+        }
+        next();
+    },
 }
