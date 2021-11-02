@@ -140,109 +140,6 @@ module.exports = {
             })
         }
     },
-    // getMailByAdmin: async (req, res) => {
-    //     var checkBody = ["type", "nation"];
-    //     let token = req.body.token;
-    //     let filter = {
-    //         isdelete: false,
-    //         status: {
-    //             $ne: 0
-    //         }
-    //     };
-    //     let totalLive = 0;
-    //     let totalDisabled = 0;
-    //     let totalVerified = 0;
-    //     let totalSale = 0;
-
-    //     let check = await Account.findOne({
-    //         token: token,
-    //         isdelete: false,
-    //         status: true,
-    //         role: 1
-    //     });
-    //     if (check) {
-    //         for (var k in req.body) {
-    //             if (checkBody.indexOf(k) != -1 && req.body[k]) {
-    //                 filter[k] = new RegExp(req.body[k].trim(), 'i')
-    //             }
-    //         }
-    //         if (req.body.ischeck) {
-    //             filter.ischeck = req.body.ischeck;
-    //         }
-    //         if (req.body.mail) {
-    //             filter.mail = new RegExp(req.body.mail.trim(), 'i');
-    //         }
-    //     //    if (req.body.start_date && req.body.stop_date) {
-    //     //         let date = new Date();
-    //     //         console.log("date= " + date);
-    //     //         var d = new Date(date),
-    //     //             month = '' + (d.getMonth() + 1),
-    //     //             day = '' + d.getDate(),
-    //     //             year = d.getFullYear();
-    //     //         let dateNow = year + "-" + month + "-" + day + " 00:00";
-    //     //         console.log("dateNow= " + dateNow);
-    //     //         let start_date = new Date(dateNow);
-    //     //         start_date.setDate(start_date.getDate() - req.body.start_date);
-    //     //         console.log("startDate= " + start_date);
-    //     //         let stop_date = new Date(dateNow);
-    //     //         stop_date.setDate(stop_date.getDate() - req.body.stop_date);
-    //     //         console.log("stopDate= " + stop_date);
-    //     //         filter.date_reg = {
-    //     //             "$gte": stop_date.toISOString(),
-    //     //             "$lte": start_date.toISOString()
-    //     //         };
-    //     //     } 
-    //         if (req.body.status) {
-    //             filter.status = req.body.status.trim();
-    //             let a = req.body.status;
-    //             if (a == 1) {
-    //                 totalLive = await Mail.countDocuments(filter);
-    //             }
-    //             if (a == 5) {
-    //                 totalDisabled = await Mail.countDocuments(filter);
-    //             }
-    //             if (a == 10) {
-    //                 totalVerified = await Mail.countDocuments(filter);
-    //             }
-    //             if (a == 15) {
-    //                 totalSale = await Mail.countDocuments(filter);
-    //             }
-    //         }
-    //         const perPage = parseInt(req.body.limit);
-    //         const page = parseInt(req.body.page || 1);
-    //         const skip = (perPage * page) - perPage;
-    //         console.log(filter)
-    //         const result = await Mail.find(filter).skip(skip).limit(perPage);
-    //         const totalDocuments = await Mail.countDocuments(filter);
-    //         const totalPage = Math.ceil(totalDocuments / perPage);
-    //         if (!req.body.status) {
-    //             filter.status = 1;
-    //             totalLive = await Mail.countDocuments(filter);
-    //             filter.status = 5;
-    //             totalDisabled = await Mail.countDocuments(filter);
-    //             filter.status = 10;
-    //             totalVerified = await Mail.countDocuments(filter);
-    //             filter.status = 15;
-    //             totalSale = await Mail.countDocuments(filter);
-    //         }
-    //         res.status(200).json({
-    //             message: "Lấy dữ liệu thành công!",
-    //             data: result,
-    //             page: page,
-    //             totalDocuments: totalDocuments,
-    //             totalPage: totalPage,
-    //             totalLive: totalLive,
-    //             totalDisabled: totalDisabled,
-    //             totalVerified: totalVerified,
-    //             totalSale: totalSale,
-
-    //         });
-    //     } else {
-    //         res.status(400).json({
-    //             message: "Không có quyền thực thi!",
-    //         });
-    //     }
-    // },
     getAllMail: async function (req, res) {
         try {
             var checkBody = ["type", "nation"];
@@ -333,7 +230,6 @@ module.exports = {
                 const perPage = parseInt(req.body.limit);
                 const page = parseInt(req.body.page || 1);
                 const skip = (perPage * page) - perPage;
-                console.log(filter)
                 const result = await Mail.find(filter).skip(skip).limit(perPage);
                 const totalDocuments = await Mail.countDocuments(filter);
                 const totalPage = Math.ceil(totalDocuments / perPage);
@@ -540,7 +436,38 @@ module.exports = {
             })
         }
     },
-    testgetMailByUser: async function (req, res) {
+    testFunction: async function (req, res) {
+        const fetch = require("node-fetch");
+
+        var myHeaders = new fetch.Headers();
+
+        // var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        var urlencoded = new URLSearchParams();
+        urlencoded.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJwYXNzd29yZCI6ImFkbWluMTIzIiwiaWF0IjoxNjM0NjMyNTM1fQ.7GkwqpakxrKUbojRVay68BtnoiH5WyMcUNrNi-eJZX8");
+        urlencoded.append("type", "");
+        urlencoded.append("nation", "");
+        urlencoded.append("ischeck", "");
+        urlencoded.append("mail", "");
+        urlencoded.append("start_date", "");
+        urlencoded.append("status", "");
+        urlencoded.append("limit", "20");
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:3000/api/mail/get-all-mail", requestOptions)
+        .then(response => response.text())
+        .then(result => res.json({
+            data: result
+        }))
+        .catch(error => console.log('error', error));
+        return
         let filter = {
             ischeck: true
         }
