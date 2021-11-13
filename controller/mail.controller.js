@@ -9,6 +9,9 @@ let request = require('request');
 let accChecker = require('../model/accCheckers')
 let Log = require('../model/dataLog')
 let support = require('./support')
+let DeviceDetector = require("device-detector-js");
+const deviceDetector  = new DeviceDetector();
+var useragent = require('express-useragent');
 
 module.exports = {
     addMail: async function (req, res) {
@@ -437,6 +440,17 @@ module.exports = {
         }
     },
     testFunction: async function (req, res) {
+        var source = req.headers['user-agent']
+        const result = deviceDetector.parse(source);
+        res.status(200).json({
+            data: result
+        })
+        // console.log(result);
+        return
+        res.json({
+            data: JSON.stringify(req)
+        })
+        return
         const fetch = require("node-fetch");
 
         var myHeaders = new fetch.Headers();
