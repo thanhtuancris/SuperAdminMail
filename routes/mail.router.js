@@ -13,6 +13,6 @@ router.post('/mail/check-mails',middleware.checkMails, mailController.checkMails
 router.post('/mail/check-mail-by-list',middleware.checkMailByList, mailController.checkMailByList);
 router.post('/mail/get-date', mailController.getDate);
 router.post('/mail/get-status', mailController.getStatus);
-router.post('/mail/export-mail',middleware.checkMails, mailController.exportMail);
+router.post('/mail/export-mail',middleware.exportMail, mailController.exportMail);
 router.post('/mail/edit-mails',middleware.editMails, mailController.editMails);
 module.exports = router;

@@ -6,7 +6,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 var compression = require('compression')
 var device = require('express-device');
-
+var cron = require('cron');
+const supports = require('./controller/support')
 const port = 3000
 app.use(express.urlencoded({
     extended: false 
@@ -30,6 +31,16 @@ app.post('*', function (req, res) {
         message: "Trang không tồn tại, vui lòng thử lại"
     });
 })
+const job = new cron.CronJob({
+    cronTime: '00 50 23 * * 0-6', // Chạy Jobs vào 23h30 hằng đêm
+    onTick: async function () {
+        console.log('Cron jub running check mails...');
+        supports.autoCheckMail();
+    },
+    start: true,
+    timeZone: 'Asia/Ho_Chi_Minh'
+});
+job.start();
 app.listen(port, () => {
     console.log("Server is running" );
 });

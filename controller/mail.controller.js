@@ -373,20 +373,17 @@ module.exports = {
             let check = await Admin.findOne({
                 token: req.body.token,
                 isdelete: false,
+                status: true,
                 role: 10
             });
-            let checkBody = ["type", "nation", "mail", "password", "mailRecovery", "note", "status"];
+            let checkBody = ["type", "nation", "mail", "password", "mailRecovery", "note"];
             let update = {
                 date_edit: new Date(),
                 edit_by: check._id
             };
-            // let date = req.body.date_import + " 00:00";
             let id_mail = req.body.id_mail;
-           
+           console.log(req.body)
             if (check) {
-                // if (req.body.date_import) {
-                //     update.date_import = date
-                // }
                 for (var k in req.body) {
                     if (checkBody.indexOf(k) != -1 && req.body[k]) {
                         update[k] = req.body[k].trim();
@@ -395,22 +392,29 @@ module.exports = {
                         }
                     }
                 }
+                if(req.body.status){
+                    update = {
+                        status: parseInt(req.body.status)
+                    }
+                }
                 try {
                     let check_mail
+                    let filterMail = {
+                        _id: id_mail,
+                        isdelete: false,
+                    }
                     if (req.body.mail) {
                         check_mail = await Mail.findOne({
                             mail: sanitizer.escape(req.body.mail.trim().split(/\s+/).join(''))
                         });
                     }
-
                     if (check_mail != null && check_mail._id != id_mail) {
                         res.status(400).json({
                             message: "Mail đã tồn tại trong hệ thống!"
                         })
                     } else {
-                        Mail.findOneAndUpdate({
-                            _id: id_mail
-                        }, update, (loi, ok) => {
+                        Mail.findOneAndUpdate(
+                            filterMail, update, (loi, ok) => {
                             if (ok) {
                                 res.status(200).json({
                                     message: "Cập nhật thành công"
@@ -1127,10 +1131,10 @@ module.exports = {
                 filter.ischeck = req.body.ischeck;
             }
             if (req.body.mail) {
-                filter.mail = new RegExp(req.body.mail.trim(), 'i');
+                filter.mail = new RegExp(req.body.mail.trim(), 'i')
             }
             if (req.body.status) {
-                filter.status = req.body.status.trim();
+                filter.status = parseInt(req.body.status)
             }
             if(req.body.start_date){
                 let start_date = new Date(req.body.start_date + " 07:00")

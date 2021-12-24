@@ -96,7 +96,7 @@ module.exports = {
     checkMails: function (req, res, next) {
         if (!req.body.token) {
             res.status(400).json({
-                message: "Hết phiên đăng nhập"
+                message: "Hết phiên đăng nhập!"
             });
             return;
         }
@@ -141,4 +141,26 @@ module.exports = {
         }
         next();
     },
+    exportMail: function (req, res, next) {
+        if (!req.body.token) {
+            res.status(400).json({
+                message: "Hết phiên đăng nhập!"
+            });
+            return;
+        }
+        if (!req.body.quantity) {
+            res.status(400).json({
+                message: "Vui lòng nhập số lượng!"
+            });
+            return;
+        }
+        if(typeof(req.body.quantity) == "string"){
+            res.status(400).json({
+                message: "Vui lòng nhập lại số lượng!"
+            });
+            return;
+        }
+        next();
+
+    }
 }
