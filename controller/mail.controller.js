@@ -12,7 +12,9 @@ let support = require('./support')
 let DeviceDetector = require("device-detector-js");
 const deviceDetector  = new DeviceDetector();
 var useragent = require('express-useragent');
-
+const {
+    Storage
+} = require('@google-cloud/storage');
 module.exports = {
     addMail: async function (req, res) {
         let check = await Admin.findOne({
@@ -1020,9 +1022,9 @@ module.exports = {
                     }
                 }
                 let arr = req.body.quantity;
-                // arr = parseInt(arr);
+                arr = parseInt(arr);
                 let check_result = await Mail.find(filter).limit(arr);
-                if(parseInt(arr) > check_result.length){
+                if(arr > check_result.length){
                     res.status(400).json({
                         message: "Số lượng mail không đủ!"
                     })
@@ -1036,18 +1038,16 @@ module.exports = {
                     let arrData = []
                     const totalDocuments = await Mail.countDocuments(filter);
                     // const totalPage = Math.ceil(totalDocuments / perPage);
-                    const totalPage = Math.ceil(arr / 100);
+                    const totalPage = Math.ceil(arr / perPage);
                     if (totalPage == 0) {
                         res.status(200).json({
                             message: "Không có dữ liệu để đồng bộ!"
                         })
                     } else {
-                        for (let i = 0; i < totalPage; i++) {
-                            let page = i + 1;
-                            // let skip = (perPage * page) - perPage;
-                            let skip = (arr * page) - arr;
-                            let result = await Mail.find(filter).sort({date_import: 1}).skip(skip).limit(arr);
-
+                        // for (let i = 0; i < totalPage; i++) {
+                            // let skip = (arr * page) - arr;
+                            // let result = await Mail.find(filter).sort({date_import: 1}).skip(skip).limit(arr);
+                            let result = await Mail.find(filter).sort({date_import: 1}).limit(arr);
                             for (let j = 0; j < result.length; j++) {
                                 let updateStatus = {
                                     status: 6,
@@ -1075,8 +1075,10 @@ module.exports = {
                                 //log Data
                                 let logData = result[j].mail + '|' + result[j].password + '|' + result[j].mailRecovery + '|' + result[j].note + '|' + result[j].type + '|' + result[j].nation + '|' + result[j].status + '|' + date_import.toString() + '|' + date_edit.toString();
                                 arrData.push(logData)
+                                // fs.appendFile(filename, logData, function (err) {
+                                //     if (err) throw err;
+                                // });
                             }
-                            if (i + 1 == totalPage) {
                                 res.status(200).json({
                                     message: "Xuất dữ liệu thành công!",
                                     filename: filename,
@@ -1094,8 +1096,6 @@ module.exports = {
                                 if(saveLogExport){
                                     console.log("Save log export done");
                                 }
-                            }
-                        }
                     }
                 }
             } else {

@@ -91,7 +91,7 @@ module.exports = {
                     });
                     newCookie.save((err, result) => {
                         if (result) {
-                            console.log("Lưu cookie thành công " + rss)
+                            console.log("Lưu cookie thành công " + result)
                         } else {
                             console.log(err)
                         }
