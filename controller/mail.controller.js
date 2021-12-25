@@ -1020,9 +1020,9 @@ module.exports = {
                     }
                 }
                 let arr = req.body.quantity;
-                arr = parseInt(arr);
+                // arr = parseInt(arr);
                 let check_result = await Mail.find(filter).limit(arr);
-                if(arr > check_result.length){
+                if(parseInt(arr) > check_result.length){
                     res.status(400).json({
                         message: "Số lượng mail không đủ!"
                     })

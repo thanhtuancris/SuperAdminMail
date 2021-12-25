@@ -154,11 +154,15 @@ module.exports = {
             });
             return;
         }
-        if(typeof(req.body.quantity) == "string"){
-            res.status(400).json({
-                message: "Vui lòng nhập lại số lượng!"
-            });
-            return;
+        if(req.body.quantity){
+            let arr = req.body.quantity
+            let isnum = /^\d+$/.test(arr);
+            if(isnum == false){
+                res.status(400).json({
+                    message: "Vui lòng nhập lại số lượng!"
+                });
+                return;
+            }
         }
         next();
 
