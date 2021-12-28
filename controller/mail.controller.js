@@ -384,7 +384,6 @@ module.exports = {
                 edit_by: check._id
             };
             let id_mail = req.body.id_mail;
-           console.log(req.body)
             if (check) {
                 for (var k in req.body) {
                     if (checkBody.indexOf(k) != -1 && req.body[k]) {
@@ -395,9 +394,7 @@ module.exports = {
                     }
                 }
                 if(req.body.status){
-                    update = {
-                        status: parseInt(req.body.status)
-                    }
+                    update.status = parseInt(req.body.status)
                 }
                 try {
                     let check_mail
@@ -410,23 +407,25 @@ module.exports = {
                             mail: sanitizer.escape(req.body.mail.trim().split(/\s+/).join(''))
                         });
                     }
+                   
                     if (check_mail != null && check_mail._id != id_mail) {
+                        console.log("check_mail: " + JSON.stringify(check_mail));
+                        console.log("id_mail: " + id_mail);
                         res.status(400).json({
                             message: "Mail đã tồn tại trong hệ thống!"
                         })
                     } else {
-                        Mail.findOneAndUpdate(
-                            filterMail, update, (loi, ok) => {
-                            if (ok) {
-                                res.status(200).json({
-                                    message: "Cập nhật thành công"
-                                });
-                            } else {
-                                res.status(400).json({
-                                    message: "Cập nhật thất bại"
-                                });
-                            }
-                        });
+                        let updateMail = await Mail.findOneAndUpdate(filterMail, update, {new: true})
+                        console.log(updateMail);
+                        if(updateMail){
+                            res.status(200).json({
+                                message: "Cập nhật thành công"
+                            });
+                        }else{
+                            res.status(400).json({
+                                message: "Cập nhật thất bại"
+                            });
+                        }
                     }
                 } catch (ex) {
                     res.status(401).json({
@@ -744,111 +743,116 @@ module.exports = {
                     "$lt": stop_date
                 }
             }
-            
-            let totalcheck = 10000;
-            let resultCheck = await Mail.find(filter).limit(parseInt(totalcheck));
-
-            let checkCookiesExist = await Cookies.findOne({
-                user: checkUser.username
-            });
-            if(checkCookiesExist){
-                console.log("Tài khoản đã có cookie");
-            }else{
-                console.log("Tài khoản chưa có cookie, đi lấy đã nhé.");
-                await support.getCookie(checkUser.token);
-            } 
-            const perPage = 500;
-            let page = 1;
-            const totalPage = Math.ceil(totalcheck / perPage);
-            let cookies = await Cookies.findOne({
-                user: checkUser.username
-            });
-            if(cookies){
-            //  for (let i = 0; i < totalPage; i++) {
-                let arrMail = [];
-                // let skip = (perPage * page) - perPage;
-                let result = await Mail.find(filter)
-                for (let j = 0; j < result.length; j++) {
-                    arrMail.push(result[j].mail.trim());
-                }
-                    const options = {
-                        method: 'POST',
-                        url: 'http://gmailchecker.info/Mail/check',
-                        headers: {
-                            'Host': "gmailchecker.info",
-                            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
-                            'Accept': "*/*",
-                            'Accept-Language': "en-GB,en;q=0.5",
-                            'Accept-Encoding': "",
-                            'Referer': "http://gmailchecker.info/Mail",
-                            'Content-Type': "application/json",
-                            'X-XSRF-TOKEN': cookies.Xtoken.toString(),
-                            'X-Requested-With': "XMLHttpRequest",
-                            'Origin': "http://gmailchecker.info",
-                            'Connection': "keep-alive",
-                            'Cookie': cookies.cookie.toString(),
-                        },
-                        json: {
-                            "data": arrMail,
-                            "transactionId": 0
-                        }
-                    };
-                    request(options, async function (errs, ress, body) {
-                        if (errs) {
-                            console.log(errs);
-                        } else {
-                            try {
-                                let rsChecked = body.result.list;
-                                for (let y = 0; y < rsChecked.length; y++) {
-                                    setTimeout(async function () {
-                                        let temp = rsChecked[y].split("|");
-                                        let statusCheck = 1;
-                                        switch (temp[0]) {
-                                            case "Good":
-                                                statusCheck = 1;
-                                                break;
-                                            case "Disable":
-                                                statusCheck = 2;
-                                                break;
-                                            case "Ver":
-                                                statusCheck = 3;
-                                                break;
-                                            case "Not_Exist":
-                                                statusCheck = 4;
-                                                break;
-                                            default:
-                                                statusCheck = 5;
-                                        }
-                                        let update = await Mail.updateMany({
-                                            mail: temp[1]
-                                        }, {
-                                            status: statusCheck,
-                                            ischeck: true
-                                        })
-                                        if (update !== null) {
-                                            console.log("UPDATE STATUS SUCCESS: " + temp[1] + "|" + temp[0])
-                                        } else {
-                                            console.log("UPDATE STATUS FAIL " + temp[1])
-                                        }
-                                        if(y+1 == rsChecked.length){
-                                            // console.log("y = " + y);
-                                            console.log("CHECK MAIL DONE");
-                                            res.status(200).json({
-                                                message: "Check mail thành công!"
-                                            })
-                                        }
-                                    }, 30*y)
-                                }
-                            } catch (rex) {
-                                console.log(rex);
-                            }
-                        }
-                    });
-            }else{
+            let totalcheck = await Mail.countDocuments(filter)
+            if(totalcheck <= 0){
                 res.status(400).json({
-                    message: "Chưa có tài khoản checkmail!"
+                    message: "Không có dữ liệu để check!"
                 })
+            }else{
+                let checkCookiesExist = await Cookies.findOne({
+                    user: checkUser.username
+                });
+                if(checkCookiesExist){
+                    console.log("Tài khoản đã có cookie");
+                }else{
+                    console.log("Tài khoản chưa có cookie, đi lấy đã nhé.");
+                    await support.getCookie(checkUser.token);
+                } 
+                const perPage = 500;
+                const totalPage = Math.ceil(totalcheck / perPage);
+                let cookies = await Cookies.findOne({
+                    user: checkUser.username
+                });
+                if(cookies){
+                    for (let i = 0; i < totalPage; i++) {
+                        let arrMail = [];
+                        let page = i + 1
+                        let skip = (perPage * page) - perPage;
+                        let result = await Mail.find(filter).skip(skip).limit(perPage)
+                        for (let j = 0; j < result.length; j++) {
+                            arrMail.push(result[j].mail.trim());
+                        }
+                        const options = {
+                            method: 'POST',
+                            url: 'http://gmailchecker.info/Mail/check',
+                            headers: {
+                                'Host': "gmailchecker.info",
+                                'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
+                                'Accept': "*/*",
+                                'Accept-Language': "en-GB,en;q=0.5",
+                                'Accept-Encoding': "",
+                                'Referer': "http://gmailchecker.info/Mail",
+                                'Content-Type': "application/json",
+                                'X-XSRF-TOKEN': cookies.Xtoken.toString(),
+                                'X-Requested-With': "XMLHttpRequest",
+                                'Origin': "http://gmailchecker.info",
+                                'Connection': "keep-alive",
+                                'Cookie': cookies.cookie.toString(),
+                            },
+                            json: {
+                                "data": arrMail,
+                                "transactionId": 0
+                            }
+                        };
+                        request(options, async function (errs, ress, body) {
+                            if (errs) {
+                                console.log(errs);
+                            } else {
+                                try {
+                                    let rsChecked = body.result.list;
+                                    for (let y = 0; y < rsChecked.length; y++) {
+                                        setTimeout(async function () {
+                                            let temp = rsChecked[y].split("|");
+                                            let statusCheck = 1;
+                                            switch (temp[0]) {
+                                                case "Good":
+                                                    statusCheck = 1;
+                                                    break;
+                                                case "Disable":
+                                                    statusCheck = 2;
+                                                    break;
+                                                case "Ver":
+                                                    statusCheck = 3;
+                                                    break;
+                                                case "Not_Exist":
+                                                    statusCheck = 4;
+                                                    break;
+                                                default:
+                                                    statusCheck = 5;
+                                            }
+                                            let update = await Mail.updateMany({
+                                                mail: temp[1]
+                                            }, {
+                                                status: statusCheck,
+                                                ischeck: true
+                                            })
+                                            if (update !== null) {
+                                                console.log("UPDATE STATUS SUCCESS: " + temp[1] + "|" + temp[0])
+                                            } else {
+                                                console.log("UPDATE STATUS FAIL " + temp[1])
+                                            }
+                                            if(y+1 == rsChecked.length && i+1 == totalPage){
+                                                console.log("CHECK MAIL DONE");
+                                                res.status(200).json({
+                                                    message: "Check mail thành công!"
+                                                })
+                                            }
+                                        }, 30*y)
+                                    }
+                                } catch (rex) {
+                                    console.log(rex);
+                                }
+                            }
+                        });
+                        page++;
+                    }
+                }else{
+                    res.status(400).json({
+                        message: "Chưa có tài khoản checkmail!"
+                    })
+                }
             }
+            
         } else {
             res.status(400).json({
                 message: "Không có quyền thực thi!"
