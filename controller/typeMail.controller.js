@@ -75,8 +75,6 @@ module.exports = {
             status: true,
             role: 10
         })
-        console.log(req.body.token);
-        console.log(req.body);
         if (check) {
             let filter = {
                 _id: req.body.id_Type,
