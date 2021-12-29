@@ -8,7 +8,7 @@ module.exports = {
             status: true,
             role: 10
         })
-        let newNote= new Note({
+        let newNote = new Note({
             name: req.body.name.trim(),
             date_import: new Date(),
         })
